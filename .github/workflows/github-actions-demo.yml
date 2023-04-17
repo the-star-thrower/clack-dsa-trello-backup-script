@@ -17,13 +17,18 @@ jobs:
           TOKEN: ${{ secrets.TOKEN }}
           BOARD_ID: ${{ secrets.BOARD_ID }}
         run: |
-          bash ${{ github.workspace }}/board-export-json.sh
-      - name: checkout backups repo
-        uses: actions/checkout@v3
-        with:
-          repository: 'the-star-thrower/clack-dsa-trello-backups' 
+          bash ${{ github.workspace }}/board-export-json.sh > backup.json
       - name: open branch
         run: git checkout -b trello-backup-latest
-      #- name: open-pull-request-action
-      #  uses: thecanadianroot/open-pull-request-action@v1.0.3
-      - run: echo "🍏 This job's status is ${{ job.status }}."
+      - name: ssh public/private key setup and verification
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_DEPLOY_KEY_PRIVATE }}
+      - name: git add commit, push
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add ${{ github.workspace }}/backup.json
+          git commit -m "add latest trello backup file"
+          git push --set-upstream origin trello-backup-latest 
+
