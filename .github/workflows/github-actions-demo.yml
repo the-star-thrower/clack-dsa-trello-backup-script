@@ -8,7 +8,7 @@ jobs:
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository code
+      - name: Check out script repo
         uses: actions/checkout@v3
       - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
       - name: run trello REST API script w/ secrets
@@ -17,5 +17,18 @@ jobs:
           TOKEN: ${{ secrets.TOKEN }}
           BOARD_ID: ${{ secrets.BOARD_ID }}
         run: |
-          bash ${{ github.workspace }}/board-export-json.sh
-      - run: echo "🍏 This job's status is ${{ job.status }}."
+          bash ${{ github.workspace }}/board-export-json.sh > backup.json
+      - name: open branch
+        run: git checkout -b trello-backup-latest
+      - name: ssh public/private key setup and verification
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_DEPLOY_KEY_PRIVATE }}
+      - name: git add commit, push
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add ${{ github.workspace }}/backup.json
+          git commit -m "add latest trello backup file"
+          git push --set-upstream origin trello-backup-latest 
+
