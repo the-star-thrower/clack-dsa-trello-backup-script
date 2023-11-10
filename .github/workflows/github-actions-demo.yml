@@ -20,8 +20,8 @@ jobs:
           bash ${{ github.workspace }}/board-export-json.sh > backup.json
       - name: open branch
         run: git checkout -b trello-backup-latest
-      - name: pull branch latest
-        run: git pull origin trello-backup-latest
+      - name: pull branch latest & merge
+        run: git config pull.rebase false && git pull origin trello-backup-latest
       - name: ssh public/private key setup and verification
         uses: webfactory/ssh-agent@v0.8.0
         with:
